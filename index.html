@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>엔드필드 무기 기질 체크리스트</title>
+
+<style>
+body {
+  font-family: sans-serif;
+  background: #111;
+  color: white;
+  padding: 20px;
+}
+
+.weapon {
+  border: 1px solid #444;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+}
+
+.progress {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #aaa;
+}
+
+.complete {
+  color: #4caf50;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<h1>엔드필드 무기 기질 체크리스트</h1>
+<div id="weaponList"></div>
+
+<script>
+const weapons = [
+  {
+    id: 1,
+    name: "프로토타입 블레이드",
+    traits: ["공격력 증가", "치명타 확률 증가", "스킬 피해 증가"]
+  },
+  {
+    id: 2,
+    name: "실험형 라이플",
+    traits: ["원거리 피해 증가", "재사용 대기시간 감소", "보스 피해 증가"]
+  }
+];
+
+function render() {
+  const container = document.getElementById("weaponList");
+  container.innerHTML = "";
+
+  weapons.forEach(weapon => {
+    const div = document.createElement("div");
+    div.className = "weapon";
+
+    const title = document.createElement("h3");
+    title.innerText = weapon.name;
+    div.appendChild(title);
+
+    weapon.traits.forEach((trait, index) => {
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.id = `w${weapon.id}-${index}`;
+
+      checkbox.addEventListener("change", updateProgress);
+      checkbox.addEventListener("change", saveState);
+
+      const label = document.createElement("label");
+      label.htmlFor = checkbox.id;
+      label.innerText = " " + trait;
+
+      div.appendChild(checkbox);
+      div.appendChild(label);
+      div.appendChild(document.createElement("br"));
+    });
+
+    const progress = document.createElement("div");
+    progress.className = "progress";
+    progress.id = `progress-${weapon.id}`;
+    div.appendChild(progress);
+
+    container.appendChild(div);
+  });
+
+  loadState();
+  updateProgress();
+}
+
+function updateProgress() {
+  weapons.forEach(weapon => {
+    const total = weapon.traits.length;
+    let checked = 0;
+
+    weapon.traits.forEach((_, index) => {
+      const el = document.getElementById(`w${weapon.id}-${index}`);
+      if (el && el.checked) checked++;
+    });
+
+    const percent = Math.floor((checked / total) * 100);
+    const progressEl = document.getElementById(`progress-${weapon.id}`);
+
+    progressEl.innerHTML = `${checked}/${total} (${percent}%)`;
+
+    if (percent === 100) {
+      progressEl.innerHTML += " <span class='complete'>✔ 완성!</span>";
+    }
+  });
+}
+
+function saveState() {
+  const inputs = document.querySelectorAll("input[type=checkbox]");
+  const state = {};
+  inputs.forEach(input => {
+    state[input.id] = input.checked;
+  });
+  localStorage.setItem("endfieldChecklist", JSON.stringify(state));
+}
+
+function loadState() {
+  const saved = JSON.parse(localStorage.getItem("endfieldChecklist") || "{}");
+  Object.keys(saved).forEach(key => {
+    const el = document.getElementById(key);
+    if (el) el.checked = saved[key];
+  });
+}
+
+render();
+</script>
+
+</body>
+</html>
